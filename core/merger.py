@@ -261,13 +261,8 @@ def _save_merged_output(df: pd.DataFrame, output_path: str | Path):
 
     # Row 4+: 데이터
     for _, row in df.iterrows():
-        # 지정입고일을 datetime으로 변환
-        date_val = row.get('지정입고일', '')
-        if isinstance(date_val, str) and date_val:
-            try:
-                date_val = datetime.strptime(date_val, '%Y-%m-%d')
-            except ValueError:
-                pass
+        # 지정입고일을 문자열(yyyy-mm-dd)로 유지
+        date_val = str(row.get('지정입고일', ''))
 
         ws.append([
             None,
