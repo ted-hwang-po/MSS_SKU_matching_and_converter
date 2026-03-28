@@ -76,6 +76,7 @@ class App:
         brand_frame = ttk.LabelFrame(tab, text="브랜드 선택", padding=8)
         brand_frame.pack(fill=tk.X, pady=(0, 8))
 
+        # 모드 선택
         radio_row = ttk.Frame(brand_frame)
         radio_row.pack(fill=tk.X, pady=(0, 3))
         self.a_brand_mode = tk.StringVar(value='all')
@@ -84,21 +85,51 @@ class App:
         ttk.Radiobutton(radio_row, text="브랜드 선택", variable=self.a_brand_mode,
                         value='select', command=self._a_on_brand_mode).pack(side=tk.LEFT)
 
+        # 선택된 브랜드 표시 영역
+        self.a_selected_frame = ttk.Frame(brand_frame)
+        self.a_selected_frame.pack(fill=tk.X, pady=(3, 0))
+        self.a_selected_label = ttk.Label(self.a_selected_frame, text="", font=("", 9),
+                                          foreground="#2563eb", wraplength=600)
+        self.a_selected_label.pack(fill=tk.X)
+
+        # 검색
         search_row = ttk.Frame(brand_frame)
         search_row.pack(fill=tk.X, pady=(3, 3))
         ttk.Label(search_row, text="검색:", width=5, anchor=tk.W).pack(side=tk.LEFT)
         self.a_search_var = tk.StringVar()
-        self.a_search_var.trace_add('write', lambda *_: self._a_filter_brands())
+        self.a_search_var.trace_add('write', lambda *_: self._a_render_checkboxes())
         self.a_search_entry = ttk.Entry(search_row, textvariable=self.a_search_var, state='disabled')
         self.a_search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
-        list_frame = ttk.Frame(brand_frame)
-        list_frame.pack(fill=tk.X)
-        self.a_brand_listbox = tk.Listbox(list_frame, selectmode=tk.EXTENDED, height=4,
-                                          exportselection=False, font=("", 10), state='disabled')
-        self.a_brand_listbox.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        ttk.Scrollbar(list_frame, orient=tk.VERTICAL,
-                      command=self.a_brand_listbox.yview).pack(side=tk.RIGHT, fill=tk.Y)
+        # 전체선택/해제 버튼
+        btn_row = ttk.Frame(brand_frame)
+        btn_row.pack(fill=tk.X, pady=(0, 3))
+        self.a_select_all_btn = ttk.Button(btn_row, text="전체 선택",
+                                           command=lambda: self._a_toggle_all(True), state='disabled')
+        self.a_select_all_btn.pack(side=tk.LEFT, padx=(0, 5))
+        self.a_deselect_all_btn = ttk.Button(btn_row, text="전체 해제",
+                                             command=lambda: self._a_toggle_all(False), state='disabled')
+        self.a_deselect_all_btn.pack(side=tk.LEFT)
+
+        # 체크박스 리스트 (스크롤 가능)
+        self.a_cb_canvas = tk.Canvas(brand_frame, height=100, highlightthickness=0)
+        self.a_cb_scrollbar = ttk.Scrollbar(brand_frame, orient=tk.VERTICAL, command=self.a_cb_canvas.yview)
+        self.a_cb_inner = ttk.Frame(self.a_cb_canvas)
+        self.a_cb_inner.bind('<Configure>',
+                             lambda e: self.a_cb_canvas.configure(scrollregion=self.a_cb_canvas.bbox('all')))
+        self.a_cb_canvas.create_window((0, 0), window=self.a_cb_inner, anchor='nw')
+        self.a_cb_canvas.configure(yscrollcommand=self.a_cb_scrollbar.set)
+        self.a_cb_canvas.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.a_cb_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # 마우스 휠 스크롤
+        def _on_mousewheel(event):
+            self.a_cb_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        self.a_cb_canvas.bind_all('<MouseWheel>', _on_mousewheel)
+
+        # 체크박스 상태: {brand_name: BooleanVar}
+        self.a_brand_vars = {}
+        self.a_cb_widgets = []
 
         # 저장 위치
         save_frame = ttk.LabelFrame(tab, text="저장 위치", padding=8)
@@ -247,37 +278,81 @@ class App:
         try:
             self.a_order_df = load_order_data(filepath)
             self.a_all_brands = get_brand_list(self.a_order_df)
-            self.a_brand_listbox.configure(state='normal')
-            self.a_brand_listbox.delete(0, tk.END)
+
+            # 체크박스 변수 초기화
+            self.a_brand_vars = {}
             for b in self.a_all_brands:
-                self.a_brand_listbox.insert(tk.END, b)
+                self.a_brand_vars[b] = tk.BooleanVar(value=False)
+
             self._a_on_brand_mode()
+            self._a_render_checkboxes()
             self._log(self.a_log, f"브랜드 로드 완료 ({len(self.a_all_brands)}개): {', '.join(self.a_all_brands)}")
         except Exception as e:
             messagebox.showerror("오류", f"파일 1 로드 실패:\n{e}")
 
     def _a_on_brand_mode(self):
-        if self.a_brand_mode.get() == 'all':
-            self.a_brand_listbox.selection_clear(0, tk.END)
-            self.a_brand_listbox.configure(state='disabled')
-            self.a_search_var.set('')
-            self.a_search_entry.configure(state='disabled')
-        else:
-            self.a_brand_listbox.configure(state='normal')
-            self.a_search_entry.configure(state='normal')
+        is_select = self.a_brand_mode.get() == 'select'
+        state = 'normal' if is_select else 'disabled'
+        self.a_search_entry.configure(state=state)
+        self.a_select_all_btn.configure(state=state)
+        self.a_deselect_all_btn.configure(state=state)
 
-    def _a_filter_brands(self):
+        if not is_select:
+            self.a_search_var.set('')
+            self.a_selected_label.configure(text="")
+        else:
+            self._a_update_selected_label()
+
+        self._a_render_checkboxes()
+
+    def _a_render_checkboxes(self):
+        """검색어에 맞는 체크박스만 표시. 기존 선택 상태 유지."""
+        for w in self.a_cb_widgets:
+            w.destroy()
+        self.a_cb_widgets.clear()
+
         q = self.a_search_var.get().strip().lower()
-        self.a_brand_listbox.configure(state='normal')
-        self.a_brand_listbox.delete(0, tk.END)
+        is_select = self.a_brand_mode.get() == 'select'
+
         for b in self.a_all_brands:
+            if q and q not in b.lower():
+                continue
+            var = self.a_brand_vars.get(b)
+            if var is None:
+                continue
+            cb = ttk.Checkbutton(
+                self.a_cb_inner, text=b, variable=var,
+                command=self._a_update_selected_label,
+            )
+            if not is_select:
+                cb.configure(state='disabled')
+            cb.pack(anchor=tk.W, padx=5, pady=1)
+            self.a_cb_widgets.append(cb)
+
+        # 스크롤 영역 갱신
+        self.a_cb_inner.update_idletasks()
+        self.a_cb_canvas.configure(scrollregion=self.a_cb_canvas.bbox('all'))
+
+    def _a_update_selected_label(self):
+        selected = [b for b, v in self.a_brand_vars.items() if v.get()]
+        if selected:
+            self.a_selected_label.configure(
+                text=f"선택됨 ({len(selected)}개): {', '.join(selected)}")
+        else:
+            self.a_selected_label.configure(text="")
+
+    def _a_toggle_all(self, value: bool):
+        """검색 결과에 보이는 브랜드만 전체 선택/해제"""
+        q = self.a_search_var.get().strip().lower()
+        for b, var in self.a_brand_vars.items():
             if not q or q in b.lower():
-                self.a_brand_listbox.insert(tk.END, b)
+                var.set(value)
+        self._a_update_selected_label()
 
     def _a_get_brands(self):
         if self.a_brand_mode.get() == 'all':
             return list(self.a_all_brands)
-        return [self.a_brand_listbox.get(i) for i in self.a_brand_listbox.curselection()]
+        return [b for b, v in self.a_brand_vars.items() if v.get()]
 
     def _a_run(self):
         for n in [1, 2, 3]:
