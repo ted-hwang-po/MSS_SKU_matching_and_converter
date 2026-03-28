@@ -5,3 +5,4 @@ build/
 *.spec
 output/
 .DS_Store
+sample_data/
