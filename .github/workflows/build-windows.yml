@@ -23,7 +23,7 @@ jobs:
 
       - name: Build EXE
         run: |
-          pyinstaller app.py --onefile --windowed --name="SKU_변환기" --add-data="core;core" --hidden-import=openpyxl --hidden-import=pandas --hidden-import=rapidfuzz
+          pyinstaller app.py --onefile --windowed --name="SKU_변환기" --add-data="core;core" --hidden-import=openpyxl --hidden-import=pandas --hidden-import=rapidfuzz --hidden-import=core.ui_helpers --hidden-import=core.session
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4
