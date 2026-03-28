@@ -1,3 +1,5 @@
+import math
+
 import pandas as pd
 from rapidfuzz import fuzz, process
 
@@ -12,6 +14,20 @@ def _find_column(df: pd.DataFrame, candidates: list[str], label: str) -> str:
     raise ValueError(f"'{label}' 컬럼을 찾을 수 없습니다. 후보: {candidates}, 실제 컬럼: {list(df.columns)}")
 
 
+def _safe_str(val) -> str:
+    """숫자(float/int)를 안전하게 문자열로 변환. float64의 '.0' 문제 해결.
+    예: 8809917321244.0 → '8809917321244', NaN → ''
+    """
+    if val is None:
+        return ''
+    if isinstance(val, float):
+        if math.isnan(val):
+            return ''
+        if val == int(val):
+            return str(int(val))
+    return str(val).strip()
+
+
 def match_barcode_to_uid(order_df: pd.DataFrame, matching_df: pd.DataFrame) -> pd.DataFrame:
     # 파일2 컬럼명 유연 매핑
     barcode_col = _find_column(matching_df, ['바코드'], '바코드')
@@ -24,10 +40,10 @@ def match_barcode_to_uid(order_df: pd.DataFrame, matching_df: pd.DataFrame) -> p
         uid_col: '상품코드',
         style_col: '스타일번호',
     })
-    match_subset['바코드'] = match_subset['바코드'].astype(str).str.strip()
+    match_subset['바코드'] = match_subset['바코드'].apply(_safe_str)
 
     order_df = order_df.copy()
-    order_df['88코드'] = order_df['88코드'].astype(str).str.strip()
+    order_df['88코드'] = order_df['88코드'].apply(_safe_str)
 
     merged = order_df.merge(
         match_subset,
@@ -52,8 +68,8 @@ def detect_option_products(merged_df: pd.DataFrame, matching_df: pd.DataFrame) -
 
     match_subset = matching_df[[barcode_col, uid_col]].copy()
     match_subset = match_subset.rename(columns={barcode_col: '바코드', uid_col: '상품코드'})
-    match_subset['바코드'] = match_subset['바코드'].astype(str).str.strip()
-    match_subset['상품코드'] = match_subset['상품코드'].astype(str).str.strip()
+    match_subset['바코드'] = match_subset['바코드'].apply(_safe_str)
+    match_subset['상품코드'] = match_subset['상품코드'].apply(_safe_str)
 
     barcode_count = match_subset.groupby('상품코드')['바코드'].nunique()
 
@@ -88,9 +104,9 @@ def match_option_info(
     warnings = []
 
     for idx, row in merged_df.iterrows():
-        uid = str(row.get('상품코드', ''))
+        uid = _safe_str(row.get('상품코드', ''))
         product_name = str(row.get('상품명', ''))
-        barcode = str(row.get('88코드', ''))
+        barcode = _safe_str(row.get('88코드', ''))
 
         is_option = has_option.get(uid, False)
 

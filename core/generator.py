@@ -18,10 +18,24 @@ def _find_col(df: pd.DataFrame, pattern: str) -> str | None:
 
 
 def _to_int_if_numeric(val) -> int | str:
-    """숫자 문자열이면 int로 변환, 아니면 그대로 반환"""
+    """숫자(float 포함)를 int로 변환. NaN/None 처리."""
+    if val is None:
+        return ''
+    if isinstance(val, float):
+        if math.isnan(val):
+            return ''
+        if val == int(val):
+            return int(val)
     s = str(val).strip()
-    if s.replace('.', '', 1).isdigit():
-        return int(float(s))
+    if not s or s == 'nan' or s == 'None':
+        return ''
+    # "8809917321244.0" 같은 문자열 처리
+    try:
+        f = float(s)
+        if f == int(f):
+            return int(f)
+    except ValueError:
+        pass
     return s
 
 
@@ -109,13 +123,16 @@ def generate_system_upload(
     price_col = _find_col(merged_df, r'정상가.*VAT.*포함') or '정상가(VAT 포함)'
     cost_col = _find_col(merged_df, r'공급가.*VAT.*제외') or '공급가(VAT 제외)'
 
-    # 데이터: UID 기준으로 그룹핑
-    uid_groups = merged_df.groupby('상품코드', sort=False)
+    # NaN UID 제외 후 그룹핑
+    valid_df = merged_df[merged_df['상품코드'].notna()].copy()
+    valid_df['_uid_str'] = valid_df['상품코드'].apply(_to_int_if_numeric).astype(str)
+    uid_groups = valid_df.groupby('_uid_str', sort=False)
 
-    for uid, group in uid_groups:
-        uid_str = str(uid)
+    for uid_str, group in uid_groups:
+        if not uid_str or uid_str == '' or uid_str == 'nan':
+            continue
         first_row = group.iloc[0]
-        style_no = str(first_row.get('스타일번호', ''))
+        style_no = _to_int_if_numeric(first_row.get('스타일번호', ''))
         is_opt = has_option.get(uid_str, False)
 
         # 오더 총 수량 = 동일 UID의 수량(오프) 합산
@@ -130,8 +147,8 @@ def generate_system_upload(
             size_type = 'MF3'
 
         data_row = [''] * len(headers_main)
-        data_row[1] = int(float(uid_str)) if uid_str.replace('.', '').isdigit() else uid_str  # UID
-        data_row[2] = style_no          # 스타일번호
+        data_row[1] = _to_int_if_numeric(uid_str)   # UID
+        data_row[2] = style_no                       # 스타일번호
         data_row[7] = total_qty         # 오더총 수량
         data_row[8] = plan_price        # 계획 정상가
         data_row[9] = plan_cost         # 계획 원가
@@ -156,9 +173,9 @@ def generate_system_upload(
     ws2.append(['스타일번호', 'UID', '사이즈', '바코드'])
 
     for _, row in merged_df.iterrows():
-        uid_str = str(row.get('상품코드', ''))
-        style_no_raw = str(row.get('스타일번호', ''))
-        barcode_raw = str(row.get('88코드', ''))
+        uid_str = str(_to_int_if_numeric(row.get('상품코드', '')))
+        style_no_raw = row.get('스타일번호', '')
+        barcode_raw = row.get('88코드', '')
         is_opt = has_option.get(uid_str, False)
 
         if is_opt:
@@ -225,12 +242,9 @@ def generate_brand_order(
     total_qty = 0
 
     for _, row in merged_df.iterrows():
-        uid_str = str(row.get('상품코드', ''))
-        barcode = str(row.get('88코드', ''))
+        uid_val = _to_int_if_numeric(row.get('상품코드', ''))
+        barcode_val = _to_int_if_numeric(row.get('88코드', ''))
         product_name = str(row.get('상품명', ''))
-
-        uid_val = _to_int_if_numeric(uid_str)
-        barcode_val = _to_int_if_numeric(barcode)
 
         supply_price = _safe_round(row.get(cost_col, 0)) or 0
         retail_price = _safe_round(row.get(price_col, 0)) or 0
