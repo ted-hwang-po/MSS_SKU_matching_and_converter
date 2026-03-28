@@ -240,7 +240,8 @@
 </div>
 
 <div class="tabs">
-  <button class="tab-btn active" data-tab="guide">사용 가이드</button>
+  <button class="tab-btn active" data-tab="guide">A. SKU 매칭 변환</button>
+  <button class="tab-btn" data-tab="guide-b">B. 발주 파일 통합</button>
   <button class="tab-btn" data-tab="trouble">문제 해결</button>
 </div>
 
@@ -412,6 +413,96 @@
 <div class="alert alert-ok">
   <strong>이 프로그램은 인터넷에 연결하지 않습니다.</strong><br>
   모든 데이터는 PC 안에서만 처리되며, 입력 파일은 읽기만 합니다. 원본 파일을 수정하지 않습니다.
+</div>
+
+</div>
+
+<!-- ==================== 기능 B: 발주 파일 통합 ==================== -->
+<div id="guide-b" class="tab-content">
+
+<h2>기능 B란?</h2>
+<div class="card">
+  <p>날짜별·브랜드별로 <strong>분산된 발주 파일</strong>을 하나의 통합 파일로 합칩니다.</p>
+  <p>통합된 파일은 기능 A(SKU 매칭 변환)의 입력으로 사용하거나, 전체 발주 현황 확인용으로 활용할 수 있습니다.</p>
+</div>
+
+<h2>사용 순서</h2>
+
+<div class="step">
+  <span class="step-num">1</span>
+  <h3>발주 파일 추가</h3>
+  <p style="margin-top:0.8rem">"+ 파일 추가" 버튼을 눌러 통합할 발주 파일들을 선택합니다.</p>
+  <ul>
+    <li>여러 파일을 한 번에 선택할 수 있습니다 (Ctrl+클릭)</li>
+    <li>추가한 파일을 제거하려면 목록에서 선택 후 "- 선택 제거"</li>
+    <li>지원 형식: <code>.xlsx</code>, <code>.csv</code></li>
+  </ul>
+</div>
+
+<div class="step">
+  <span class="step-num">2</span>
+  <h3>매칭 파일 선택 (선택사항)</h3>
+  <p style="margin-top:0.8rem">상품코드-바코드 매칭 파일을 업로드하면 <code>상품번호</code> 컬럼이 자동으로 채워집니다.</p>
+  <p>업로드하지 않으면 <code>상품번호</code> 컬럼은 비워둔 채 통합됩니다.</p>
+</div>
+
+<div class="step">
+  <span class="step-num">3</span>
+  <h3>통합 실행</h3>
+  <p style="margin-top:0.8rem">"▶ 통합 실행" 버튼을 클릭합니다. 결과 파일 <code>통합_발주수량.xlsx</code>가 저장됩니다.</p>
+</div>
+
+<h2>입력 파일 필수 컬럼</h2>
+
+<div class="card">
+  <h3>발주 파일 (각 파일)</h3>
+  <table>
+    <tr><th>컬럼명</th><th>설명</th><th>예시</th></tr>
+    <tr><td><code>브랜드명</code></td><td>브랜드 이름</td><td>리브러쉬</td></tr>
+    <tr><td><code>88코드</code></td><td>바코드 (13자리)</td><td>8809915250003</td></tr>
+    <tr><td><code>상품명</code></td><td>상품 이름</td><td>100배 농축 가글 50ml 클로브</td></tr>
+    <tr><td><code>공급가(VAT 제외)</code></td><td>공급 단가</td><td>8386</td></tr>
+    <tr><td><code>정상가(VAT 포함)</code></td><td>정상 판매가</td><td>25900</td></tr>
+    <tr><td><code>상시행사가(VAT 포함)</code></td><td>상시 행사가</td><td>20500</td></tr>
+    <tr><td><code>발주수량(오프)</code></td><td>오프라인 발주 수량</td><td>100</td></tr>
+  </table>
+  <div class="alert alert-info" style="margin-top:0.5rem">
+    파일 상단에 <code>지정입고일</code> 정보가 있으면 자동으로 추출됩니다 (예: "4/1(수)" → 2026-04-01).
+  </div>
+</div>
+
+<div class="card">
+  <h3>매칭 파일 (선택)</h3>
+  <table>
+    <tr><th>컬럼명</th><th>설명</th></tr>
+    <tr><td><code>바코드</code></td><td>88코드와 동일한 값</td></tr>
+    <tr><td><code>신규 상품코드</code> 또는 <code>1P 상품코드</code> 또는 <code>상품코드</code></td><td>상품번호 (UID)</td></tr>
+  </table>
+</div>
+
+<h2>출력 파일</h2>
+
+<div class="card">
+  <p><code>통합_발주수량.xlsx</code> — 모든 입력 파일을 합친 단일 파일</p>
+  <table>
+    <tr><th>컬럼</th><th>설명</th></tr>
+    <tr><td><code>지정입고일</code></td><td>각 파일에서 자동 추출</td></tr>
+    <tr><td><code>브랜드명</code></td><td>브랜드 이름</td></tr>
+    <tr><td><code>88코드</code></td><td>바코드</td></tr>
+    <tr><td><code>상품번호</code></td><td>매칭 파일 업로드 시 자동 채움</td></tr>
+    <tr><td><code>상품명</code></td><td>상품 이름</td></tr>
+    <tr><td><code>공급가(VAT 제외)</code></td><td>공급 단가</td></tr>
+    <tr><td><code>정상가(VAT 포함)</code></td><td>정상 판매가</td></tr>
+    <tr><td><code>상시행사가(VAT 포함)</code></td><td>상시 행사가</td></tr>
+    <tr><td><code>총 발주금액(VAT 제외)</code></td><td>공급가 × 발주수량 (자동 계산)</td></tr>
+    <tr><td><code>발주수량(오프)</code></td><td>오프라인 발주 수량</td></tr>
+  </table>
+</div>
+
+<h2>데이터 보안</h2>
+<div class="alert alert-ok">
+  <strong>이 프로그램은 인터넷에 연결하지 않습니다.</strong><br>
+  모든 데이터는 PC 안에서만 처리되며, 입력 파일은 읽기만 합니다.
 </div>
 
 </div>
@@ -693,6 +784,55 @@
 <div class="alert alert-ok">
   <strong>데이터 보안</strong><br>
   이 프로그램은 인터넷에 연결하지 않습니다. 모든 데이터는 PC 안에서만 처리되며, 입력 파일은 읽기만 합니다.
+</div>
+
+<h2>8. 발주 파일 통합 (기능 B) 관련</h2>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="issue-tag tag-red">오류</span>
+    <span class="issue-title">"헤더를 찾을 수 없습니다" 오류</span>
+    <span class="issue-arrow">&#9654;</span>
+  </div>
+  <div class="issue-body">
+    <p><strong>원인:</strong> 발주 파일에 <code>브랜드명</code> 컬럼이 있는 행을 찾지 못했습니다.</p>
+    <ul>
+      <li>파일의 상단 1~9행 사이에 <code>브랜드명</code>이 포함된 헤더 행이 있어야 합니다</li>
+      <li>기존 브랜드 송부용 파일 양식과 동일한 구조여야 합니다</li>
+      <li>헤더 행 위에 빈 행이 많으면(10행 이상) 인식 실패할 수 있습니다</li>
+    </ul>
+  </div>
+</div>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="issue-tag tag-yellow">경고</span>
+    <span class="issue-title">상품번호가 채워지지 않는다</span>
+    <span class="issue-arrow">&#9654;</span>
+  </div>
+  <div class="issue-body">
+    <p><strong>원인:</strong> 매칭 파일이 없거나, 바코드가 매칭되지 않았습니다.</p>
+    <ul>
+      <li>매칭 파일을 선택했는지 확인</li>
+      <li>매칭 파일에 <code>바코드</code> 컬럼과 <code>신규 상품코드</code>(또는 <code>1P 상품코드</code>, <code>상품코드</code>) 컬럼이 있는지 확인</li>
+      <li>발주 파일의 88코드 값이 매칭 파일의 바코드 값과 일치하는지 확인</li>
+    </ul>
+  </div>
+</div>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="issue-tag tag-yellow">경고</span>
+    <span class="issue-title">지정입고일이 비어있다</span>
+    <span class="issue-arrow">&#9654;</span>
+  </div>
+  <div class="issue-body">
+    <p><strong>원인:</strong> 발주 파일 상단에 "지정입고일" 텍스트와 날짜 정보를 찾지 못했습니다.</p>
+    <ul>
+      <li>파일의 1~5행 사이에 "지정입고일"이라는 텍스트가 있고, 바로 옆 셀에 날짜(예: <code>4/1(수)</code>)가 있어야 합니다</li>
+      <li>없는 경우 통합 후 엑셀에서 직접 입력해주세요</li>
+    </ul>
+  </div>
 </div>
 
 <h2>문의</h2>
