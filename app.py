@@ -314,7 +314,7 @@ class App:
         self._log(f"  옵션 판별: 옵션 {opt_count}건, 단일 {len(has_option) - opt_count}건")
 
         # 옵션 매핑
-        merged, warnings = match_option_info(merged, self.option_df, has_option)
+        merged, warnings = match_option_info(merged, self.option_df, has_option, self.matching_df)
         if warnings:
             self._log(f"  ⚠️ 옵션 매핑 경고: {len(warnings)}건")
             for w in warnings:

@@ -65,7 +65,7 @@ for uid, is_opt in has_option.items():
 print("\n" + "=" * 60)
 print("5. 옵션 매핑")
 print("=" * 60)
-merged_df, warnings = match_option_info(merged_df, option_df, has_option)
+merged_df, warnings = match_option_info(merged_df, option_df, has_option, matching_df)
 for _, row in merged_df.iterrows():
     print(f"  88코드={row['88코드']}, 상품명={row['상품명']}")
     print(f"    → 사이즈유형={row.get('사이즈유형')}, 슬롯={row.get('옵션슬롯')}, 옵션값={row.get('옵션값')}")
