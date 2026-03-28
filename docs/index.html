@@ -283,7 +283,16 @@
 <div class="step">
   <span class="step-num">2</span>
   <h3>브랜드 선택</h3>
-  <p style="margin-top:0.8rem">드롭다운에서 변환할 브랜드를 선택합니다. 파일 1에 있는 브랜드만 표시됩니다.</p>
+  <p style="margin-top:0.8rem">두 가지 모드 중 하나를 선택합니다:</p>
+  <table>
+    <tr><th>모드</th><th>설명</th></tr>
+    <tr><td><strong>모든 브랜드</strong></td><td>파일 1에 있는 모든 브랜드에 대해 일괄 변환합니다.</td></tr>
+    <tr><td><strong>브랜드 선택</strong></td><td>목록에서 원하는 브랜드를 선택합니다. <strong>Ctrl+클릭</strong>으로 여러 개를 동시에 선택할 수 있습니다.</td></tr>
+  </table>
+  <div class="alert alert-info">
+    "모든 브랜드"를 선택하면 브랜드별로 각각 2개씩 파일이 생성됩니다.<br>
+    예: 브랜드 5개 → 총 10개 파일 생성
+  </div>
 </div>
 
 <div class="step">
@@ -450,7 +459,7 @@
 <div class="issue">
   <div class="issue-header">
     <span class="issue-tag tag-yellow">경고</span>
-    <span class="issue-title">파일을 선택했는데 브랜드 드롭다운이 비어있다</span>
+    <span class="issue-title">파일을 선택했는데 브랜드 목록이 비어있다</span>
     <span class="issue-arrow">&#9654;</span>
   </div>
   <div class="issue-body">
@@ -458,6 +467,20 @@
     <ul>
       <li>올바른 파일(총 발주 수량 데이터셋)을 선택했는지 확인</li>
       <li>엑셀에서 <code>브랜드명</code> 컬럼에 실제 데이터가 있는지 확인</li>
+    </ul>
+  </div>
+</div>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="issue-tag tag-blue">참고</span>
+    <span class="issue-title">"브랜드 선택" 모드에서 여러 개를 선택하는 방법</span>
+    <span class="issue-arrow">&#9654;</span>
+  </div>
+  <div class="issue-body">
+    <ul>
+      <li><strong>Ctrl + 클릭</strong>: 개별 브랜드를 하나씩 추가/해제</li>
+      <li><strong>Shift + 클릭</strong>: 범위 선택 (처음 클릭한 항목부터 마지막 클릭한 항목까지)</li>
     </ul>
   </div>
 </div>
