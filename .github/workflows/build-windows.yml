@@ -21,32 +21,28 @@ jobs:
         run: |
           pip install pandas openpyxl rapidfuzz pyinstaller tkinterdnd2
 
+      - name: Verify tkinterdnd2 structure
+        run: |
+          python -c "
+          import tkinterdnd2, os
+          pkg_dir = os.path.dirname(tkinterdnd2.__file__)
+          print(f'Package dir: {pkg_dir}')
+          for root, dirs, files in os.walk(pkg_dir):
+              level = root.replace(pkg_dir, '').count(os.sep)
+              indent = '  ' * level
+              print(f'{indent}{os.path.basename(root)}/')
+              for f in files:
+                  print(f'{indent}  {f}')
+          "
+
       - name: Build EXE
         run: |
-          # tkinterdnd2 DLL 경로를 찾아서 PyInstaller에 포함
-          python -c "
-          import tkinterdnd2
-          import os
-          dnd_path = os.path.dirname(tkinterdnd2.__file__)
-          print(f'tkinterdnd2 path: {dnd_path}')
+          pyinstaller app.py --onefile --windowed --name="SKU_변환기" --add-data="core;core" --additional-hooks-dir=. --hidden-import=openpyxl --hidden-import=pandas --hidden-import=rapidfuzz --hidden-import=tkinterdnd2 --hidden-import=core.ui_helpers --hidden-import=core.session
 
-          # PyInstaller 실행
-          import PyInstaller.__main__
-          PyInstaller.__main__.run([
-              'app.py',
-              '--onefile',
-              '--windowed',
-              '--name=SKU_변환기',
-              '--add-data=core;core',
-              f'--add-data={dnd_path};tkinterdnd2',
-              '--hidden-import=openpyxl',
-              '--hidden-import=pandas',
-              '--hidden-import=rapidfuzz',
-              '--hidden-import=tkinterdnd2',
-              '--hidden-import=core.ui_helpers',
-              '--hidden-import=core.session',
-          ])
-          "
+      - name: Verify EXE
+        run: |
+          dir dist
+          echo "Build completed successfully"
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4
