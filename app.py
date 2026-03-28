@@ -19,7 +19,7 @@ class App:
     def __init__(self, root: tk.Tk):
         self.root = root
         self.root.title("MSS SKU 매칭 및 발주 파일 변환기")
-        self.root.geometry("700x720")
+        self.root.geometry("700x780")
         self.root.resizable(False, False)
 
         # 데이터 상태
@@ -27,11 +27,11 @@ class App:
         self.matching_df = None
         self.option_df = None
         self.file_paths = {1: None, 2: None, 3: None}
+        self.all_brands = []
 
         self._build_ui()
 
     def _build_ui(self):
-        # 전체 패딩
         main_frame = ttk.Frame(self.root, padding=15)
         main_frame.pack(fill=tk.BOTH, expand=True)
 
@@ -69,14 +69,32 @@ class App:
         brand_frame = ttk.LabelFrame(main_frame, text="브랜드 선택", padding=10)
         brand_frame.pack(fill=tk.X, pady=(0, 10))
 
-        brand_row = ttk.Frame(brand_frame)
-        brand_row.pack(fill=tk.X)
+        # 라디오 버튼: 전체 / 선택
+        radio_row = ttk.Frame(brand_frame)
+        radio_row.pack(fill=tk.X, pady=(0, 5))
 
-        ttk.Label(brand_row, text="브랜드:", width=10, anchor=tk.W).pack(side=tk.LEFT)
+        self.brand_mode = tk.StringVar(value='all')
+        ttk.Radiobutton(radio_row, text="모든 브랜드", variable=self.brand_mode,
+                        value='all', command=self._on_brand_mode_change).pack(side=tk.LEFT, padx=(0, 15))
+        ttk.Radiobutton(radio_row, text="브랜드 선택", variable=self.brand_mode,
+                        value='select', command=self._on_brand_mode_change).pack(side=tk.LEFT)
 
-        self.brand_var = tk.StringVar()
-        self.brand_combo = ttk.Combobox(brand_row, textvariable=self.brand_var, state='disabled')
-        self.brand_combo.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(5, 0))
+        # 브랜드 리스트박스 (복수 선택)
+        list_frame = ttk.Frame(brand_frame)
+        list_frame.pack(fill=tk.X, pady=(5, 0))
+
+        self.brand_listbox = tk.Listbox(
+            list_frame, selectmode=tk.EXTENDED, height=5,
+            exportselection=False, font=("", 10),
+        )
+        self.brand_listbox.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+        scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.brand_listbox.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.brand_listbox.configure(yscrollcommand=scrollbar.set)
+
+        # 초기 상태: "모든 브랜드" → 리스트 비활성
+        self.brand_listbox.configure(state='disabled')
 
         # ── 저장 위치 ──
         save_frame = ttk.LabelFrame(main_frame, text="저장 위치", padding=10)
@@ -88,7 +106,6 @@ class App:
         self.save_entry = ttk.Entry(save_row, state='readonly')
         self.save_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
 
-        # 기본 저장 위치: 데스크톱
         default_save = str(Path.home() / "Desktop")
         self.save_path = default_save
         self.save_entry.configure(state='normal')
@@ -116,6 +133,13 @@ class App:
                                           command=self._open_output_folder, state='disabled')
         self.open_folder_btn.pack(pady=(10, 0))
 
+    def _on_brand_mode_change(self):
+        if self.brand_mode.get() == 'all':
+            self.brand_listbox.selection_clear(0, tk.END)
+            self.brand_listbox.configure(state='disabled')
+        else:
+            self.brand_listbox.configure(state='normal')
+
     def _select_file(self, file_num: int):
         filepath = filedialog.askopenfilename(
             title=f"파일 {file_num} 선택",
@@ -132,21 +156,32 @@ class App:
         entry.insert(0, filepath)
         entry.configure(state='readonly')
 
-        # 파일 1이 로드되면 브랜드 목록 업데이트
         if file_num == 1:
             self._load_brands(filepath)
 
     def _load_brands(self, filepath: str):
         try:
             self.order_df = load_order_data(filepath)
-            brands = get_brand_list(self.order_df)
-            self.brand_combo['values'] = brands
-            self.brand_combo['state'] = 'readonly'
-            if brands:
-                self.brand_combo.current(0)
-            self._log(f"브랜드 목록 로드 완료: {', '.join(brands)}")
+            self.all_brands = get_brand_list(self.order_df)
+
+            self.brand_listbox.configure(state='normal')
+            self.brand_listbox.delete(0, tk.END)
+            for b in self.all_brands:
+                self.brand_listbox.insert(tk.END, b)
+
+            # 모드에 따라 상태 설정
+            self._on_brand_mode_change()
+
+            self._log(f"브랜드 목록 로드 완료 ({len(self.all_brands)}개): {', '.join(self.all_brands)}")
         except Exception as e:
             messagebox.showerror("오류", f"파일 1 로드 실패:\n{e}")
+
+    def _get_selected_brands(self) -> list[str]:
+        if self.brand_mode.get() == 'all':
+            return list(self.all_brands)
+        else:
+            indices = self.brand_listbox.curselection()
+            return [self.brand_listbox.get(i) for i in indices]
 
     def _select_save_folder(self):
         folder = filedialog.askdirectory(title="저장 폴더 선택")
@@ -169,91 +204,63 @@ class App:
         self.log_text.configure(state='disabled')
 
     def _run_conversion(self):
-        # 입력 검증
         for n in [1, 2, 3]:
             if not self.file_paths[n]:
                 messagebox.showwarning("입력 필요", f"파일 {n}을 선택해주세요.")
                 return
 
-        brand = self.brand_var.get()
-        if not brand:
-            messagebox.showwarning("입력 필요", "브랜드를 선택해주세요.")
+        brands = self._get_selected_brands()
+        if not brands:
+            messagebox.showwarning("입력 필요", "브랜드를 1개 이상 선택해주세요.")
             return
 
         if not self.save_path:
             messagebox.showwarning("입력 필요", "저장 위치를 선택해주세요.")
             return
 
-        # UI 비활성화
         self.run_btn.configure(state='disabled')
         self.open_folder_btn.configure(state='disabled')
         self._clear_log()
-        self._log("변환을 시작합니다...\n")
 
-        # 별도 스레드에서 처리
-        thread = threading.Thread(target=self._do_conversion, args=(brand,), daemon=True)
+        mode_text = "모든 브랜드" if self.brand_mode.get() == 'all' else f"선택 브랜드 {len(brands)}개"
+        self._log(f"변환을 시작합니다... ({mode_text})\n")
+
+        thread = threading.Thread(target=self._do_conversion_multi, args=(brands,), daemon=True)
         thread.start()
 
-    def _do_conversion(self, brand: str):
+    def _do_conversion_multi(self, brands: list[str]):
         try:
-            # 1. 파일 로딩
-            self._log("1. 파일 로딩 중...")
+            # 파일 로딩 (1회)
+            self._log("파일 로딩 중...")
             if self.order_df is None:
                 self.order_df = load_order_data(self.file_paths[1])
             self.matching_df = load_matching_data(self.file_paths[2])
             self.option_df = load_option_data(self.file_paths[3])
-            self._log(f"   파일1: {len(self.order_df)}행, 파일2: {len(self.matching_df)}행, 파일3: {len(self.option_df)}행")
+            self._log(f"  파일1: {len(self.order_df)}행, 파일2: {len(self.matching_df)}행, 파일3: {len(self.option_df)}행\n")
 
-            # 2. 브랜드 필터링
-            self._log(f"\n2. 브랜드 필터링: {brand}")
-            filtered = filter_by_brand(self.order_df, brand)
-            self._log(f"   필터링 결과: {len(filtered)}건")
+            total_brands = len(brands)
+            success_count = 0
+            fail_count = 0
 
-            if len(filtered) == 0:
-                self._log("\n⚠️ 해당 브랜드의 상품이 없습니다.")
-                self.root.after(0, lambda: self.run_btn.configure(state='normal'))
-                return
+            for i, brand in enumerate(brands, 1):
+                self._log(f"{'='*50}")
+                self._log(f"[{i}/{total_brands}] {brand}")
+                self._log(f"{'='*50}")
 
-            # 3. 바코드-UID 매칭
-            self._log("\n3. 바코드-UID 매칭...")
-            merged, unmatched = match_barcode_to_uid(filtered, self.matching_df)
-            self._log(f"   매칭 완료: {len(merged)}건")
-            if unmatched:
-                self._log(f"   ⚠️ 매칭 실패 바코드: {unmatched}")
+                try:
+                    self._do_conversion_single(brand)
+                    success_count += 1
+                except Exception as e:
+                    fail_count += 1
+                    self._log(f"  ❌ 오류: {e}")
+                    self._log(traceback.format_exc())
 
-            # 4. 옵션 판별
-            self._log("\n4. 옵션 유무 판별...")
-            has_option = detect_option_products(merged, self.matching_df)
-            opt_count = sum(1 for v in has_option.values() if v)
-            self._log(f"   옵션 상품: {opt_count}건, 단일 상품: {len(has_option) - opt_count}건")
+                self._log("")
 
-            # 5. 옵션 매핑
-            self._log("\n5. 옵션 매핑...")
-            merged, warnings = match_option_info(merged, self.option_df, has_option)
-            if warnings:
-                self._log(f"   ⚠️ 매핑 경고: {len(warnings)}건")
-                for w in warnings:
-                    self._log(f"     - {w['상품명']}: {w['원인']}")
-            else:
-                self._log("   모든 옵션 매핑 성공")
-
-            # 6. 파일 생성
-            self._log("\n6. 파일 생성...")
-            sys_path = Path(self.save_path) / f'{brand}_시스템업로드_최종파일.xlsx'
-            brand_path = Path(self.save_path) / f'{brand}_발주리스트_최종파일.xlsx'
-
-            generate_system_upload(merged, self.matching_df, self.option_df, has_option, brand, sys_path)
-            self._log(f"   ✅ {sys_path.name}")
-
-            generate_brand_order(merged, has_option, brand, brand_path)
-            self._log(f"   ✅ {brand_path.name}")
-
-            uid_count = len(has_option)
-            self._log(f"\n{'='*50}")
-            self._log(f"✅ 변환 완료!")
-            self._log(f"   총 상품(UID): {uid_count}건 (옵션 상품: {opt_count}건)")
-            self._log(f"   총 바코드(SKU): {len(merged)}건")
-            self._log(f"   저장 위치: {self.save_path}")
+            # 최종 요약
+            self._log(f"{'='*50}")
+            self._log(f"전체 완료: 성공 {success_count}건 / 실패 {fail_count}건 / 총 {total_brands}건")
+            self._log(f"저장 위치: {self.save_path}")
 
             self.root.after(0, lambda: self.open_folder_btn.configure(state='normal'))
 
@@ -263,6 +270,43 @@ class App:
 
         finally:
             self.root.after(0, lambda: self.run_btn.configure(state='normal'))
+
+    def _do_conversion_single(self, brand: str):
+        # 브랜드 필터링
+        filtered = filter_by_brand(self.order_df, brand)
+        self._log(f"  필터링: {len(filtered)}건")
+
+        if len(filtered) == 0:
+            self._log(f"  ⚠️ 해당 브랜드의 상품이 없습니다. 건너뜁니다.")
+            return
+
+        # 바코드-UID 매칭
+        merged, unmatched = match_barcode_to_uid(filtered, self.matching_df)
+        self._log(f"  바코드-UID 매칭: {len(merged)}건")
+        if unmatched:
+            self._log(f"  ⚠️ 매칭 실패 바코드: {unmatched}")
+
+        # 옵션 판별
+        has_option = detect_option_products(merged, self.matching_df)
+        opt_count = sum(1 for v in has_option.values() if v)
+        self._log(f"  옵션 판별: 옵션 {opt_count}건, 단일 {len(has_option) - opt_count}건")
+
+        # 옵션 매핑
+        merged, warnings = match_option_info(merged, self.option_df, has_option)
+        if warnings:
+            self._log(f"  ⚠️ 옵션 매핑 경고: {len(warnings)}건")
+            for w in warnings:
+                self._log(f"    - {w['상품명']}: {w['원인']}")
+
+        # 파일 생성
+        sys_path = Path(self.save_path) / f'{brand}_시스템업로드_최종파일.xlsx'
+        brand_path = Path(self.save_path) / f'{brand}_발주리스트_최종파일.xlsx'
+
+        generate_system_upload(merged, self.matching_df, self.option_df, has_option, brand, sys_path)
+        generate_brand_order(merged, has_option, brand, brand_path)
+
+        self._log(f"  ✅ {sys_path.name}")
+        self._log(f"  ✅ {brand_path.name}")
 
     def _open_output_folder(self):
         if not self.save_path:
