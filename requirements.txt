@@ -2,3 +2,4 @@ pandas>=2.0
 openpyxl>=3.1
 rapidfuzz>=3.0
 pyinstaller>=6.0
+tkinterdnd2>=0.3  # 선택적: 드래그앤드롭 지원 (미설치 시 버튼만 표시)
