@@ -318,6 +318,61 @@
   </table>
 </div>
 
+<h2>입력 파일 필수 컬럼</h2>
+
+<div class="alert alert-warn">
+  아래 <strong>필수 컬럼</strong>이 입력 파일에 반드시 있어야 합니다. 컬럼명이 다르거나 누락되면 오류가 발생합니다.<br>
+  그 외 컬럼은 있어도 무시되므로 삭제하지 않아도 됩니다.
+</div>
+
+<div class="card">
+  <h3>파일 1 — 총 발주 수량 데이터셋</h3>
+  <table>
+    <tr><th>컬럼명</th><th>설명</th><th>예시</th></tr>
+    <tr><td><code>브랜드명</code></td><td>브랜드 필터링 기준</td><td>자빈드서울</td></tr>
+    <tr><td><code>88코드</code></td><td>바코드 (13자리)</td><td>8809298738242</td></tr>
+    <tr><td><code>상품명</code></td><td>상품 이름</td><td>윙크 파운데이션 팩트 15g 18호</td></tr>
+    <tr><td><code>공급가 (VAT 제외)</code></td><td>공급 단가</td><td>11455</td></tr>
+    <tr><td><code>정상가 (VAT 포함)</code></td><td>정상 판매가</td><td>28000</td></tr>
+    <tr><td><code>상시행사가 (VAT 포함)</code></td><td>상시 행사가</td><td>17000</td></tr>
+    <tr><td><code>수량(오프)</code></td><td>오프라인 발주 수량</td><td>100</td></tr>
+  </table>
+  <div class="alert alert-info" style="margin-top:0.5rem">
+    <code>공급가</code>, <code>정상가</code>, <code>상시행사가</code> 컬럼명에 줄바꿈이나 공백 차이가 있어도 자동 인식됩니다.<br>
+    <code>발주수량(Total)</code>이 아닌 <strong><code>수량(오프)</code></strong> 컬럼을 사용합니다.
+  </div>
+</div>
+
+<div class="card">
+  <h3>파일 2 — 상품코드-바코드 매칭 데이터셋</h3>
+  <table>
+    <tr><th>컬럼명</th><th>설명</th><th>예시</th></tr>
+    <tr><td><code>바코드</code></td><td>88코드와 동일한 값</td><td>8809298738242</td></tr>
+    <tr><td><code>1P 상품코드</code> 또는 <code>상품코드</code></td><td>상품코드 (UID)</td><td>6199296</td></tr>
+    <tr><td><code>스타일번호</code></td><td>스타일 식별자</td><td>JD_B_NWO</td></tr>
+    <tr><td><code>옵션명</code></td><td>옵션 이름 (옵션 상품만)</td><td>18 커버 라이트</td></tr>
+    <tr><td><code>상품명</code></td><td>기본 상품명 (옵션 제외)</td><td>윙크 파운데이션 팩트 15g</td></tr>
+  </table>
+  <div class="alert alert-info" style="margin-top:0.5rem">
+    첫 번째 행이 비어있어도 자동 처리됩니다.<br>
+    <code>옵션명</code>과 <code>상품명</code>은 옵션 매핑 정확도를 높이므로 가급적 포함해주세요.
+  </div>
+</div>
+
+<div class="card">
+  <h3>파일 3 — 상품별 옵션 정보</h3>
+  <table>
+    <tr><th>컬럼명</th><th>설명</th><th>예시</th></tr>
+    <tr><td><code>사이즈유형</code></td><td>사이즈유형 코드</td><td>SQ3</td></tr>
+    <tr><td><code>사이즈유형명</code></td><td>상품명 기반 매칭용 텍스트</td><td>자빈드서울 윙크 파운데이션 팩트 15g</td></tr>
+    <tr><td><code>Size01</code> ~ <code>Size30</code></td><td>옵션 값 목록</td><td>18 커버 라이트</td></tr>
+  </table>
+  <div class="alert alert-info" style="margin-top:0.5rem">
+    Size 컬럼에 모든 옵션이 등록되지 않아도 파일 2의 순서를 기반으로 자동 배정됩니다.<br>
+    옵션이 없는 상품(단일 SKU)은 이 파일에 등록하지 않아도 됩니다 (자동으로 <code>MF3</code> / <code>FREE</code> 처리).
+  </div>
+</div>
+
 <h2>출력 파일 상세</h2>
 
 <div class="card">
