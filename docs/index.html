@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SKU 변환기 — 도움말</title>
+<style>
+  :root {
+    --primary: #2563eb;
+    --primary-light: #eff6ff;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+    --green: #16a34a;
+    --green-bg: #f0fdf4;
+    --yellow: #ca8a04;
+    --yellow-bg: #fefce8;
+    --red: #dc2626;
+    --red-bg: #fef2f2;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Pretendard', -apple-system, 'Malgun Gothic', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Header */
+  .header {
+    background: var(--primary);
+    color: white;
+    padding: 2rem 1rem 1rem;
+    text-align: center;
+  }
+  .header h1 { font-size: 1.5rem; font-weight: 700; }
+  .header p { font-size: 0.9rem; opacity: 0.85; margin-top: 0.3rem; }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    justify-content: center;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .tab-btn {
+    padding: 0.9rem 2rem;
+    border: none;
+    background: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-light);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: var(--primary); }
+  .tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+  }
+
+  /* Content */
+  .content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Typography */
+  h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 2.5rem 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary);
+    color: var(--primary);
+  }
+  h2:first-child { margin-top: 0; }
+  h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 1.5rem 0 0.5rem;
+  }
+  p, li { font-size: 0.92rem; }
+  p { margin: 0.5rem 0; }
+  ul, ol { padding-left: 1.5rem; margin: 0.5rem 0; }
+  li { margin: 0.3rem 0; }
+
+  /* Card */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    margin: 1rem 0;
+  }
+
+  /* Step cards */
+  .step {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    margin: 1rem 0;
+    border-left: 4px solid var(--primary);
+  }
+  .step-num {
+    display: inline-block;
+    background: var(--primary);
+    color: white;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 28px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+  }
+  .step h3 { display: inline; vertical-align: middle; margin: 0; }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.8rem 0;
+    font-size: 0.88rem;
+  }
+  th, td {
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    background: var(--primary-light);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* Alert boxes */
+  .alert {
+    border-radius: 8px;
+    padding: 0.9rem 1.2rem;
+    margin: 0.8rem 0;
+    font-size: 0.9rem;
+  }
+  .alert-info { background: var(--primary-light); border-left: 4px solid var(--primary); }
+  .alert-warn { background: var(--yellow-bg); border-left: 4px solid var(--yellow); }
+  .alert-ok { background: var(--green-bg); border-left: 4px solid var(--green); }
+  .alert-err { background: var(--red-bg); border-left: 4px solid var(--red); }
+
+  /* Code */
+  code {
+    background: #f1f5f9;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-family: 'Consolas', monospace;
+  }
+
+  /* Troubleshoot sections */
+  .issue {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 1rem 0;
+    overflow: hidden;
+  }
+  .issue-header {
+    padding: 1rem 1.3rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    user-select: none;
+  }
+  .issue-header:hover { background: #f8fafc; }
+  .issue-tag {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .tag-red { background: var(--red-bg); color: var(--red); }
+  .tag-yellow { background: var(--yellow-bg); color: var(--yellow); }
+  .tag-blue { background: var(--primary-light); color: var(--primary); }
+  .issue-title { font-weight: 600; font-size: 0.93rem; flex: 1; }
+  .issue-arrow {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    transition: transform 0.2s;
+  }
+  .issue.open .issue-arrow { transform: rotate(90deg); }
+  .issue-body {
+    display: none;
+    padding: 0 1.3rem 1.2rem;
+    font-size: 0.9rem;
+    border-top: 1px solid var(--border);
+  }
+  .issue.open .issue-body { display: block; padding-top: 1rem; }
+
+  /* Caution list */
+  .caution-list li {
+    margin: 0.6rem 0;
+    padding-left: 0.3rem;
+  }
+  .caution-list li strong {
+    color: var(--primary);
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-light);
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: 600px) {
+    .content { padding: 1.2rem 1rem 3rem; }
+    .tab-btn { padding: 0.8rem 1.2rem; font-size: 0.88rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>SKU 변환기</h1>
+  <p>MSS SKU 매칭 및 발주 파일 변환기</p>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="guide">사용 가이드</button>
+  <button class="tab-btn" data-tab="trouble">문제 해결</button>
+</div>
+
+<!-- ==================== 사용 가이드 ==================== -->
+<div class="content">
+<div id="guide" class="tab-content active">
+
+<h2>시작하기</h2>
+
+<div class="card">
+  <p><strong>실행 방법</strong>: <code>SKU_변환기.exe</code> 파일을 더블클릭합니다.</p>
+</div>
+
+<div class="alert alert-warn">
+  <strong>SmartScreen 경고가 뜨는 경우</strong><br>
+  "추가 정보" → "실행" 을 클릭하세요.<br>
+  Microsoft 인증서가 없는 새 프로그램에 표시되는 정상 알림이며, 보안 문제가 아닙니다.
+</div>
+
+<div class="alert alert-info">
+  첫 실행 시 약 5~10초 정도 로딩 시간이 걸릴 수 있습니다.
+</div>
+
+<h2>사용 순서</h2>
+
+<div class="step">
+  <span class="step-num">1</span>
+  <h3>입력 파일 선택</h3>
+  <p style="margin-top:0.8rem">3개의 파일을 각각 "파일 선택" 버튼을 눌러 지정합니다.</p>
+  <table>
+    <tr><th>순서</th><th>파일</th><th>설명</th></tr>
+    <tr><td>파일 1</td><td><strong>총 발주 수량 데이터셋</strong></td><td>브랜드별 전체 발주 정보</td></tr>
+    <tr><td>파일 2</td><td><strong>상품코드-바코드 매칭 데이터셋</strong></td><td>바코드 ↔ 상품코드(UID) 매핑</td></tr>
+    <tr><td>파일 3</td><td><strong>상품별 옵션 정보</strong></td><td>사이즈유형 / 옵션 목록</td></tr>
+  </table>
+  <p>지원 형식: <code>.xlsx</code>, <code>.csv</code><br>
+  파일 1을 선택하면 브랜드 목록이 자동으로 채워집니다.</p>
+</div>
+
+<div class="step">
+  <span class="step-num">2</span>
+  <h3>브랜드 선택</h3>
+  <p style="margin-top:0.8rem">드롭다운에서 변환할 브랜드를 선택합니다. 파일 1에 있는 브랜드만 표시됩니다.</p>
+</div>
+
+<div class="step">
+  <span class="step-num">3</span>
+  <h3>저장 위치 선택</h3>
+  <p style="margin-top:0.8rem">기본값은 바탕화면입니다. 다른 위치를 원하면 "폴더 선택" 버튼을 누르세요.</p>
+</div>
+
+<div class="step">
+  <span class="step-num">4</span>
+  <h3>변환 실행</h3>
+  <p style="margin-top:0.8rem">"▶ 변환 실행" 버튼을 클릭합니다. 하단 로그에 진행 과정이 표시되며, 완료되면 "✅ 변환 완료!" 메시지가 나타납니다.</p>
+</div>
+
+<div class="step">
+  <span class="step-num">5</span>
+  <h3>결과 확인</h3>
+  <p style="margin-top:0.8rem">"출력 폴더 열기" 버튼으로 저장 폴더를 엽니다.</p>
+  <table>
+    <tr><th>파일</th><th>용도</th></tr>
+    <tr><td><code>{브랜드명}_시스템업로드_최종파일.xlsx</code></td><td>무신사 시스템 업로드용</td></tr>
+    <tr><td><code>{브랜드명}_발주리스트_최종파일.xlsx</code></td><td>브랜드 송부용 발주 리스트</td></tr>
+  </table>
+</div>
+
+<h2>출력 파일 상세</h2>
+
+<div class="card">
+  <h3>시스템 업로드용 (2개 시트)</h3>
+  <p style="margin-top:0.5rem"><strong>시트 1 — 매입상품 구매오더 업로드 양식</strong></p>
+  <ul>
+    <li>UID, 스타일번호, 오더 총 수량, 계획 정상가/원가, 사이즈유형이 자동 입력</li>
+    <li>옵션 상품은 Size01, Size02 등에 옵션별 수량이 배분</li>
+    <li>납품일, 전자결재 등 나머지 컬럼은 <strong>직접 입력</strong> 필요</li>
+  </ul>
+  <p style="margin-top:0.8rem"><strong>시트 2 — Barcode 업로드(옵션)</strong></p>
+  <ul>
+    <li>스타일번호, UID, 사이즈(옵션명), 바코드가 자동 입력</li>
+    <li>옵션 없는 상품의 사이즈는 "FREE"</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h3>브랜드 송부용 (1개 시트)</h3>
+  <ul style="margin-top:0.5rem">
+    <li>브랜드명, 88코드, 상품번호, 상품명, 가격, 총 발주금액, 발주수량 자동 입력</li>
+    <li>상단에 TOTAL 합계 행 포함</li>
+    <li>지정입고일은 <strong>직접 입력</strong> 필요</li>
+  </ul>
+</div>
+
+<h2>주의사항</h2>
+<ul class="caution-list">
+  <li><strong>파일 형식</strong> — 반드시 <code>.xlsx</code> 또는 <code>.csv</code> 파일을 사용하세요.</li>
+  <li><strong>컬럼명 일치</strong> — 입력 파일의 컬럼명이 기존 양식과 동일해야 합니다. 임의 변경 시 오류가 발생할 수 있습니다.</li>
+  <li><strong>동시 실행 금지</strong> — 변환 중에 "변환 실행" 버튼을 다시 누르지 마세요.</li>
+  <li><strong>출력 파일 덮어쓰기</strong> — 같은 브랜드로 다시 변환하면 기존 파일이 덮어씌워집니다. 보존이 필요하면 먼저 파일명을 변경하세요.</li>
+  <li><strong>옵션 매핑 경고</strong> — 로그에 "⚠️ 매핑 경고"가 표시되면 해당 상품의 옵션 정보를 수동으로 확인해야 합니다.</li>
+</ul>
+
+<h2>데이터 보안</h2>
+<div class="alert alert-ok">
+  <strong>이 프로그램은 인터넷에 연결하지 않습니다.</strong><br>
+  모든 데이터는 PC 안에서만 처리되며, 입력 파일은 읽기만 합니다. 원본 파일을 수정하지 않습니다.
+</div>
+
+</div>
+
+<!-- ==================== 문제 해결 ==================== -->
+<div id="trouble" class="tab-content">
+
+<h2>1. 실행이 안 되는 경우</h2>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="issue-tag tag-red">실행 불가</span>
+    <span class="issue-title">더블클릭해도 아무 반응이 없다</span>
+    <span class="issue-arrow">&#9654;</span>
+  </div>
+  <div class="issue-body">
+    <p><strong>원인:</strong> Windows Defender 또는 백신이 차단했을 수 있습니다.</p>
+    <p><strong>해결 방법:</strong></p>
+    <ol>
+      <li><code>SKU_변환기.exe</code>를 우클릭 → "속성" 클릭</li>
+      <li>하단에 "이 파일은 다른 컴퓨터에서 왔으며..." 문구 → <strong>"차단 해제"</strong> 체크 → "확인"</li>
+      <li>다시 더블클릭으로 실행</li>
+    </ol>
+    <p style="margin-top:0.8rem">그래도 안 되면:</p>
+    <ul>
+      <li>Windows 보안 → 바이러스 및 위협 방지 → 보호 기록에서 차단 여부 확인</li>
+      <li>해당 파일을 "허용된 위협"으로 등록</li>
+    </ul>
+  </div>
+</div>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="issue-tag tag-yellow">경고</span>
+    <span class="issue-title">"Windows의 PC 보호" SmartScreen 경고가 뜬다</span>
+    <span class="issue-arrow">&#9654;</span>
+  </div>
+  <div class="issue-body">
+    <ol>
+      <li>"추가 정보" 클릭</li>
+      <li>"실행" 버튼 클릭</li>
+    </ol>
+    <div class="alert alert-info">이 경고는 Microsoft 인증서가 없는 프로그램에 표시되는 정상 알림입니다.</div>
+  </div>
+</div>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="issue-tag tag-red">실행 불가</span>
+    <span class="issue-title">"VCRUNTIME140.dll을 찾을 수 없습니다" 오류</span>
+    <span class="issue-arrow">&#9654;</span>
+  </div>
+  <div class="issue-body">
+    <p><strong>원인:</strong> Visual C++ 런타임이 설치되지 않았습니다.</p>
+    <p><strong>해결 방법:</strong></p>
+    <ol>
+      <li><a href="https://aka.ms/vs/17/release/vc_redist.x64.exe" target="_blank" rel="noopener">vc_redist.x64.exe 다운로드</a> 후 설치</li>
+      <li>PC 재시작</li>
+      <li><code>SKU_변환기.exe</code> 다시 실행</li>
+    </ol>
+  </div>
+</div>
+
+<h2>2. 파일 로딩 오류</h2>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="issue-tag tag-red">오류</span>
+    <span class="issue-title">"파일 1 로드 실패" 또는 "'브랜드명' 컬럼이 없습니다"</span>
+    <span class="issue-arrow">&#9654;</span>
+  </div>
+  <div class="issue-body">
+    <p><strong>원인:</strong> 파일의 컬럼명이 예상과 다릅니다.</p>
+    <p><strong>확인 사항:</strong></p>
+    <ul>
+      <li>파일 1(총 발주 수량)에 <code>브랜드명</code> 컬럼이 있는지 확인</li>
+      <li>컬럼명 앞뒤에 불필요한 공백이 있으면 제거</li>
+      <li>엑셀에서 첫 번째 행이 컬럼 헤더인지 확인 (빈 행이 위에 있으면 안 됨)</li>
+    </ul>
+  </div>
+</div>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="issue-tag tag-red">오류</span>
+    <span class="issue-title">"'바코드' 또는 '상품코드(UID)' 컬럼을 찾을 수 없습니다"</span>
+    <span class="issue-arrow">&#9654;</span>
+  </div>
+  <div class="issue-body">
+    <p><strong>원인:</strong> 파일 2(매칭 데이터)의 컬럼명이 예상과 다릅니다.</p>
+    <p><strong>확인 사항:</strong></p>
+    <ul>
+      <li>파일 2에 <code>바코드</code>, <code>스타일번호</code> 컬럼이 있는지 확인</li>
+      <li>상품코드 컬럼은 <code>상품코드</code>, <code>1P 상품코드</code>, <code>기존 위탁 상품코드 UID</code> 중 하나가 있어야 함</li>
+      <li>첫 번째 행이 완전히 비어있는 경우는 자동 처리되지만, 2행 이상 비어있으면 문제 발생 가능</li>
+    </ul>
+  </div>
+</div>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="issue-tag tag-yellow">경고</span>
+    <span class="issue-title">파일을 선택했는데 브랜드 드롭다운이 비어있다</span>
+    <span class="issue-arrow">&#9654;</span>
+  </div>
+  <div class="issue-body">
+    <p><strong>원인:</strong> 파일 1의 <code>브랜드명</code> 컬럼에 값이 없거나, 잘못된 파일을 선택했을 수 있습니다.</p>
+    <ul>
+      <li>올바른 파일(총 발주 수량 데이터셋)을 선택했는지 확인</li>
+      <li>엑셀에서 <code>브랜드명</code> 컬럼에 실제 데이터가 있는지 확인</li>
+    </ul>
+  </div>
+</div>
+
+<h2>3. 매칭 오류</h2>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="issue-tag tag-yellow">경고</span>
+    <span class="issue-title">"매칭 실패 바코드" 경고</span>
+    <span class="issue-arrow">&#9654;</span>
+  </div>
+  <div class="issue-body">
+    <p><strong>원인:</strong> 파일 1의 특정 88코드가 파일 2에 없습니다.</p>
+    <ul>
+      <li>표시된 바코드가 파일 2의 <code>바코드</code> 컬럼에 존재하는지 확인</li>
+      <li>바코드 앞뒤 공백이나 보이지 않는 문자가 있는지 확인</li>
+      <li>파일 2에 해당 상품이 누락됐다면, 추가 후 다시 실행</li>
+    </ul>
+  </div>
+</div>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="issue-tag tag-yellow">경고</span>
+    <span class="issue-title">"옵션 매핑 경고" — 사이즈유형 매칭 실패</span>
+    <span class="issue-arrow">&#9654;</span>
+  </div>
+  <div class="issue-body">
+    <p><strong>원인:</strong> 상품명으로 파일 3의 사이즈유형명을 찾지 못했습니다.</p>
+    <ul>
+      <li>파일 1의 상품명과 파일 3의 사이즈유형명이 유사한지 확인</li>
+      <li>예: 상품명 "글로우 커버쿠션 #쿨 라이트" → 사이즈유형명에 "글로우 커버쿠션"이 포함되어야 함</li>
+      <li>너무 다르면 파일 3을 수정하여 유사하게 맞춰주세요</li>
+    </ul>
+  </div>
+</div>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="issue-tag tag-yellow">경고</span>
+    <span class="issue-title">"옵션 슬롯 매칭 실패"</span>
+    <span class="issue-arrow">&#9654;</span>
+  </div>
+  <div class="issue-body">
+    <p><strong>원인:</strong> 상품명의 옵션 부분(# 뒤)이 파일 3의 Size 값과 매칭되지 않습니다.</p>
+    <ul>
+      <li>상품명: "커버쿠션 <strong>#쿨 라이트</strong>" → 파일 3의 Size01에 "<strong>#쿨 라이트</strong>"가 있어야 함</li>
+      <li>공백 차이는 자동 처리되지만, 완전히 다른 표기는 매칭 불가</li>
+      <li>파일 3의 Size 값을 상품명의 옵션 표기와 맞춰주세요</li>
+    </ul>
+  </div>
+</div>
+
+<h2>4. 파일 생성 오류</h2>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="issue-tag tag-red">오류</span>
+    <span class="issue-title">"Permission denied" 또는 파일 저장 실패</span>
+    <span class="issue-arrow">&#9654;</span>
+  </div>
+  <div class="issue-body">
+    <p><strong>원인:</strong> 출력 파일이 엑셀 등 다른 프로그램에서 열려 있습니다.</p>
+    <ol>
+      <li>이전에 생성된 출력 파일을 엑셀에서 닫기</li>
+      <li>다시 "변환 실행" 클릭</li>
+    </ol>
+  </div>
+</div>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="issue-tag tag-yellow">경고</span>
+    <span class="issue-title">출력 파일이 생성되었지만 내용이 비어있다</span>
+    <span class="issue-arrow">&#9654;</span>
+  </div>
+  <div class="issue-body">
+    <p><strong>원인:</strong> 선택한 브랜드에 해당하는 상품이 없습니다.</p>
+    <ul>
+      <li>브랜드 드롭다운에서 올바른 브랜드를 선택했는지 확인</li>
+      <li>파일 1에서 해당 브랜드의 데이터가 있는지 엑셀로 확인</li>
+    </ul>
+  </div>
+</div>
+
+<h2>5. 결과 데이터 이상</h2>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="issue-tag tag-blue">참고</span>
+    <span class="issue-title">UID 또는 상품번호가 예상과 다르다</span>
+    <span class="issue-arrow">&#9654;</span>
+  </div>
+  <div class="issue-body">
+    <ul>
+      <li>출력 파일의 UID는 파일 2의 <code>1P 상품코드</code> 값을 사용합니다.</li>
+      <li>파일 1의 <code>상품번호</code>(위탁 코드)와는 다른 값이며, 이것은 <strong>정상</strong>입니다.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="issue-tag tag-blue">참고</span>
+    <span class="issue-title">가격이 원본과 약간 다르다</span>
+    <span class="issue-arrow">&#9654;</span>
+  </div>
+  <div class="issue-body">
+    <p>소수점 가격은 정수로 반올림 처리됩니다.</p>
+    <p>예: 공급가 6954.545... → <strong>6955</strong></p>
+    <p>이것은 시스템 양식에 맞추기 위한 정상 처리입니다.</p>
+  </div>
+</div>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="issue-tag tag-yellow">경고</span>
+    <span class="issue-title">옵션 상품의 수량 배분이 잘못되었다</span>
+    <span class="issue-arrow">&#9654;</span>
+  </div>
+  <div class="issue-body">
+    <ul>
+      <li>파일 3의 Size01, Size02 순서가 올바른지 확인</li>
+      <li>상품명의 옵션 표기가 파일 3의 Size 값과 매칭되는지 확인</li>
+      <li>로그에 옵션 매핑 경고가 있었는지 확인</li>
+    </ul>
+  </div>
+</div>
+
+<h2>6. 프로그램이 멈추거나 응답 없음</h2>
+
+<div class="issue">
+  <div class="issue-header">
+    <span class="issue-tag tag-yellow">경고</span>
+    <span class="issue-title">"변환 실행" 후 프로그램이 멈춘 것 같다</span>
+    <span class="issue-arrow">&#9654;</span>
+  </div>
+  <div class="issue-body">
+    <ul>
+      <li>데이터가 많으면 처리에 시간이 걸릴 수 있습니다. <strong>최대 1분</strong> 정도 기다려주세요.</li>
+      <li>로그 영역에 진행 상황이 표시되고 있으면 정상 동작 중입니다.</li>
+      <li>1분 이상 응답이 없으면 프로그램을 닫고 다시 실행해주세요.</li>
+    </ul>
+  </div>
+</div>
+
+<h2>7. 기타</h2>
+
+<div class="card">
+  <h3>프로그램 업데이트</h3>
+  <p>새 버전의 <code>SKU_변환기.exe</code> 파일을 받으면 기존 파일을 교체하기만 하면 됩니다. 별도 설치 과정은 없습니다.</p>
+</div>
+
+<div class="alert alert-ok">
+  <strong>데이터 보안</strong><br>
+  이 프로그램은 인터넷에 연결하지 않습니다. 모든 데이터는 PC 안에서만 처리되며, 입력 파일은 읽기만 합니다.
+</div>
+
+<h2>문의</h2>
+<div class="card">
+  <p>위 가이드로 해결되지 않는 경우, 다음 정보를 함께 전달해주세요:</p>
+  <ol>
+    <li>프로그램 하단 로그 영역의 <strong>전체 텍스트</strong> (스크린샷 또는 복사)</li>
+    <li>사용한 <strong>입력 파일</strong> (가능한 경우)</li>
+    <li>어떤 <strong>버튼을 눌렀을 때</strong> 오류가 발생했는지</li>
+  </ol>
+</div>
+
+</div>
+</div>
+
+<div class="footer">SKU 변환기 v1.0</div>
+
+<script>
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+// Accordion toggle
+document.querySelectorAll('.issue-header').forEach(header => {
+  header.addEventListener('click', () => {
+    header.parentElement.classList.toggle('open');
+  });
+});
+</script>
+</body>
+</html>
