@@ -19,11 +19,34 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pandas openpyxl rapidfuzz pyinstaller
+          pip install pandas openpyxl rapidfuzz pyinstaller tkinterdnd2
 
       - name: Build EXE
         run: |
-          pyinstaller app.py --onefile --windowed --name="SKU_변환기" --add-data="core;core" --hidden-import=openpyxl --hidden-import=pandas --hidden-import=rapidfuzz --hidden-import=core.ui_helpers --hidden-import=core.session
+          # tkinterdnd2 DLL 경로를 찾아서 PyInstaller에 포함
+          python -c "
+          import tkinterdnd2
+          import os
+          dnd_path = os.path.dirname(tkinterdnd2.__file__)
+          print(f'tkinterdnd2 path: {dnd_path}')
+
+          # PyInstaller 실행
+          import PyInstaller.__main__
+          PyInstaller.__main__.run([
+              'app.py',
+              '--onefile',
+              '--windowed',
+              '--name=SKU_변환기',
+              '--add-data=core;core',
+              f'--add-data={dnd_path};tkinterdnd2',
+              '--hidden-import=openpyxl',
+              '--hidden-import=pandas',
+              '--hidden-import=rapidfuzz',
+              '--hidden-import=tkinterdnd2',
+              '--hidden-import=core.ui_helpers',
+              '--hidden-import=core.session',
+          ])
+          "
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4

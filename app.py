@@ -40,10 +40,17 @@ from core.session import (
 )
 
 # 드래그앤드롭 (선택적 의존성)
+# PyInstaller 환경에서 tkinterdnd2 DLL 경로 설정
+if getattr(sys, 'frozen', False):
+    _bundle_dir = sys._MEIPASS
+    _dnd_lib = os.path.join(_bundle_dir, 'tkinterdnd2')
+    if os.path.isdir(_dnd_lib):
+        os.environ['TKDND_LIBRARY'] = _dnd_lib
+
 try:
     from tkinterdnd2 import TkinterDnD, DND_FILES
     HAS_DND = True
-except ImportError:
+except (ImportError, RuntimeError):
     HAS_DND = False
 
 
