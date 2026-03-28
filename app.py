@@ -79,9 +79,19 @@ class App:
         ttk.Radiobutton(radio_row, text="브랜드 선택", variable=self.brand_mode,
                         value='select', command=self._on_brand_mode_change).pack(side=tk.LEFT)
 
+        # 검색창
+        search_row = ttk.Frame(brand_frame)
+        search_row.pack(fill=tk.X, pady=(5, 3))
+
+        ttk.Label(search_row, text="검색:", width=5, anchor=tk.W).pack(side=tk.LEFT)
+        self.search_var = tk.StringVar()
+        self.search_var.trace_add('write', lambda *_: self._filter_brand_list())
+        self.search_entry = ttk.Entry(search_row, textvariable=self.search_var)
+        self.search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
         # 브랜드 리스트박스 (복수 선택)
         list_frame = ttk.Frame(brand_frame)
-        list_frame.pack(fill=tk.X, pady=(5, 0))
+        list_frame.pack(fill=tk.X, pady=(3, 0))
 
         self.brand_listbox = tk.Listbox(
             list_frame, selectmode=tk.EXTENDED, height=5,
@@ -93,8 +103,9 @@ class App:
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.brand_listbox.configure(yscrollcommand=scrollbar.set)
 
-        # 초기 상태: "모든 브랜드" → 리스트 비활성
+        # 초기 상태: "모든 브랜드" → 리스트/검색 비활성
         self.brand_listbox.configure(state='disabled')
+        self.search_entry.configure(state='disabled')
 
         # ── 저장 위치 ──
         save_frame = ttk.LabelFrame(main_frame, text="저장 위치", padding=10)
@@ -137,8 +148,19 @@ class App:
         if self.brand_mode.get() == 'all':
             self.brand_listbox.selection_clear(0, tk.END)
             self.brand_listbox.configure(state='disabled')
+            self.search_var.set('')
+            self.search_entry.configure(state='disabled')
         else:
             self.brand_listbox.configure(state='normal')
+            self.search_entry.configure(state='normal')
+
+    def _filter_brand_list(self):
+        query = self.search_var.get().strip().lower()
+        self.brand_listbox.configure(state='normal')
+        self.brand_listbox.delete(0, tk.END)
+        for b in self.all_brands:
+            if not query or query in b.lower():
+                self.brand_listbox.insert(tk.END, b)
 
     def _select_file(self, file_num: int):
         filepath = filedialog.askopenfilename(
